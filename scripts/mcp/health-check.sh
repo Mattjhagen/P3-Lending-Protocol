@@ -34,6 +34,48 @@ probe_http_mcp() {
   fi
 }
 
+probe_github_mcp() {
+  local token_var="${1:-GITHUB_MCP_BEARER_TOKEN}"
+  local token="${!token_var:-}"
+  local code=""
+
+  if [[ -n "$token" ]]; then
+    code="$(
+      curl -sS -o /dev/null -w "%{http_code}" \
+        -H "Authorization: Bearer $token" \
+        -H "Content-Type: application/json" \
+        --data "$INIT_PAYLOAD" \
+        "https://api.githubcopilot.com/mcp/" || true
+    )"
+  fi
+
+  if [[ "$code" != "200" && "$code" != "202" ]] && command -v gh >/dev/null 2>&1; then
+    local gh_token
+    gh_token="$(gh auth token 2>/dev/null || true)"
+    if [[ -n "$gh_token" ]]; then
+      code="$(
+        curl -sS -o /dev/null -w "%{http_code}" \
+          -H "Authorization: Bearer $gh_token" \
+          -H "Content-Type: application/json" \
+          --data "$INIT_PAYLOAD" \
+          "https://api.githubcopilot.com/mcp/" || true
+      )"
+      if [[ "$code" == "200" || "$code" == "202" ]]; then
+        print_row "github" "OK" "HTTP $code (via gh auth token fallback)"
+        return 0
+      fi
+    fi
+  fi
+
+  if [[ "$code" == "200" || "$code" == "202" ]]; then
+    print_row "github" "OK" "HTTP $code"
+  elif [[ -z "$token" ]]; then
+    print_row "github" "SKIP" "missing $token_var and gh fallback unavailable"
+  else
+    print_row "github" "FAIL" "HTTP ${code:-ERR}"
+  fi
+}
+
 echo "== Environment Variables =="
 print_row "Variable" "Status" "Notes"
 print_row "--------" "------" "-----"
@@ -107,7 +149,7 @@ github_env="${github_info#*|}"
 if [[ "$github_auth" == "o_auth" ]]; then
   print_row "github" "OK" "OAuth configured via codex mcp login"
 else
-  probe_http_mcp "github" "https://api.githubcopilot.com/mcp/" "${github_env:-GITHUB_MCP_BEARER_TOKEN}"
+  probe_github_mcp "${github_env:-GITHUB_MCP_BEARER_TOKEN}"
 fi
 
 render_info="$(get_auth_info render)"

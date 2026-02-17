@@ -57,6 +57,12 @@ npm run logs:triage -- --org <sentry-org> --project <sentry-project>
 npm run logs:triage:apply -- --org <sentry-org> --project <sentry-project>
 ```
 
+6. End-to-end automated incident remediation loop:
+
+```bash
+npm run ops:auto-remediate
+```
+
 ## 4) Operational Workflow
 
 1. Run triage and inspect `ops/log-triage/<timestamp>/summary.md`.
@@ -64,6 +70,13 @@ npm run logs:triage:apply -- --org <sentry-org> --project <sentry-project>
 3. Run test suite for touched areas.
 4. Commit to `codex/logfix-*`.
 5. Open PR to `main`.
+
+## 6) Full Automation Notes
+
+- `npm run ops:auto-remediate` runs:
+  1. MCP health gate.
+  2. Codex non-interactive remediation loop.
+  3. Branched fixes only (`codex/auto-fix-*`), never direct `main` pushes.
 
 ## 5) Safety Rules
 

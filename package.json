@@ -14,7 +14,8 @@
     "env:check": "node scripts/check-env.mjs",
     "mcp:health": "bash scripts/mcp/health-check.sh",
     "logs:triage": "bash scripts/mcp/log-triage.sh",
-    "logs:triage:apply": "ALLOW_AUTOFIX=1 bash scripts/mcp/log-triage.sh --apply"
+    "logs:triage:apply": "ALLOW_AUTOFIX=1 bash scripts/mcp/log-triage.sh --apply",
+    "ops:auto-remediate": "bash scripts/mcp/auto-remediate.sh"
   },
   "dependencies": {
     "@coinbase/wallet-sdk": "^3.7.2",
