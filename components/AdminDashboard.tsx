@@ -4,6 +4,11 @@ import { Logo } from './Logo';
 import { Button } from './Button';
 import { UserProfile, EmployeeProfile, AdminRole, KYCTier, KYCStatus, Dispute, InternalTicket, WaitlistEntry } from '../types';
 import { PersistenceService } from '../services/persistence';
+import {
+  NetlifyIdentityAdminService,
+  NetlifyIdentityUser,
+  NetlifyInviteResult,
+} from '../services/netlifyIdentityAdminService';
 import { SecurityService } from '../services/security';
 import { DocumentService } from '../services/documentService';
 import { ScoreGauge } from './ScoreGauge';
@@ -28,6 +33,11 @@ export const AdminDashboard: React.FC<Props> = ({ currentAdmin, onLogout }) => {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [internalTickets, setInternalTickets] = useState<InternalTicket[]>([]);
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
+  const [identityUsers, setIdentityUsers] = useState<NetlifyIdentityUser[]>([]);
+  const [identityInvites, setIdentityInvites] = useState<NetlifyIdentityUser[]>([]);
+  const [identityError, setIdentityError] = useState<string | null>(null);
+  const [identityLoading, setIdentityLoading] = useState(false);
+  const [inviteResultByEmail, setInviteResultByEmail] = useState<Record<string, NetlifyInviteResult>>({});
   const [isChatOpen, setIsChatOpen] = useState(false);
   
   // New State for Chat Blinking
@@ -48,6 +58,25 @@ export const AdminDashboard: React.FC<Props> = ({ currentAdmin, onLogout }) => {
   // Ticket Creation State
   const [newTicket, setNewTicket] = useState({ subject: '', description: '', priority: 'LOW' as 'LOW' | 'MEDIUM' | 'HIGH' });
 
+  const refreshWaitlist = async () => {
+    const rows = await PersistenceService.getWaitlist();
+    setWaitlist(rows || []);
+  };
+
+  const loadNetlifyIdentityData = async () => {
+    setIdentityLoading(true);
+    try {
+      const payload = await NetlifyIdentityAdminService.listUsers();
+      setIdentityUsers(payload.users);
+      setIdentityInvites(payload.invites);
+      setIdentityError(null);
+    } catch (error: any) {
+      setIdentityError(error?.message || 'Failed to load Netlify Identity users.');
+    } finally {
+      setIdentityLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Load data
     const loadData = async () => {
@@ -64,8 +93,8 @@ export const AdminDashboard: React.FC<Props> = ({ currentAdmin, onLogout }) => {
         const d = await PersistenceService.getAllDisputes();
         setDisputes(d || []);
 
-        const w = await PersistenceService.getWaitlist();
-        setWaitlist(w || []);
+        await refreshWaitlist();
+        await loadNetlifyIdentityData();
       } catch (err) {
         console.error("Admin dashboard failed to load data", err);
       }
@@ -178,27 +207,77 @@ export const AdminDashboard: React.FC<Props> = ({ currentAdmin, onLogout }) => {
     }
   };
 
-  const handleInviteWaitlist = async (id: string) => {
-    await PersistenceService.updateWaitlistStatus(id, 'INVITED');
-    // Simulation:
-    alert("Invitation email sent (simulated). User marked as INVITED.");
-    setWaitlist(prev => prev.map(w => w.id === id ? { ...w, status: 'INVITED' } : w));
+  const applyInviteResultsToWaitlist = async (results: NetlifyInviteResult[]) => {
+    const resultMap = results.reduce<Record<string, NetlifyInviteResult>>((acc, row) => {
+      acc[row.email.toLowerCase()] = row;
+      return acc;
+    }, {});
+
+    setInviteResultByEmail(resultMap);
+
+    for (const row of results) {
+      if (row.status === 'FAILED') {
+        continue;
+      }
+
+      const existing = waitlist.find((w) => w.email.toLowerCase() === row.email.toLowerCase());
+      const targetStatus = row.status === 'ALREADY_EXISTS' ? 'ONBOARDED' : 'INVITED';
+
+      await PersistenceService.upsertWaitlistInviteByEmail(
+        row.email,
+        existing?.name,
+        targetStatus,
+      );
+    }
+
+    await refreshWaitlist();
+  };
+
+  const handleInviteWaitlist = async (entry: WaitlistEntry) => {
+    try {
+      const payload = await NetlifyIdentityAdminService.inviteUsers([entry.email]);
+      await applyInviteResultsToWaitlist(payload.results || []);
+      await loadNetlifyIdentityData();
+
+      const result = payload.results?.[0];
+      if (!result || result.status === 'FAILED') {
+        throw new Error(result?.error || 'Invite failed.');
+      }
+
+      if (result.status === 'ALREADY_EXISTS') {
+        alert('User already exists in Netlify Identity. Access granted and waitlist bypassed.');
+      } else {
+        alert('Invite link sent successfully. User now bypasses the waitlist.');
+      }
+    } catch (error: any) {
+      alert(`Invite failed: ${error?.message || 'Unknown error'}`);
+    }
   };
 
   const handleBatchRollout = async () => {
-    if (confirm(`Are you sure you want to invite the next ${batchSize} users in the queue?`)) {
-      setIsRollingOut(true);
-      try {
-        await PersistenceService.inviteWaitlistBatch(batchSize);
-        // Refresh list
-        const updated = await PersistenceService.getWaitlist();
-        setWaitlist(updated);
-        alert(`Successfully rolled out access to ${batchSize} users.`);
-      } catch (e) {
-        alert("Batch rollout failed.");
-      } finally {
-        setIsRollingOut(false);
-      }
+    if (!confirm(`Are you sure you want to invite the next ${batchSize} users in the queue?`)) {
+      return;
+    }
+
+    const pending = waitlist.filter((w) => w.status === 'PENDING').slice(0, Math.max(1, batchSize));
+    if (pending.length === 0) {
+      alert('No pending waitlist users to invite.');
+      return;
+    }
+
+    setIsRollingOut(true);
+    try {
+      const payload = await NetlifyIdentityAdminService.inviteUsers(pending.map((row) => row.email));
+      await applyInviteResultsToWaitlist(payload.results || []);
+      await loadNetlifyIdentityData();
+
+      alert(
+        `Invites processed. Sent: ${payload.invited_count}, Existing: ${payload.already_exists_count}, Failed: ${payload.failed_count}.`,
+      );
+    } catch (error: any) {
+      alert(`Batch rollout failed: ${error?.message || 'Unknown error'}`);
+    } finally {
+      setIsRollingOut(false);
     }
   };
 
@@ -417,6 +496,12 @@ export const AdminDashboard: React.FC<Props> = ({ currentAdmin, onLogout }) => {
                   <div>
                     <h3 className="text-xl font-bold text-white">Waitlist Queue</h3>
                     <p className="text-xs text-zinc-500">Oldest sign-ups are at the top.</p>
+                    <p className="text-[11px] text-zinc-400 mt-1">
+                      {identityLoading
+                        ? 'Syncing Netlify Identity...'
+                        : `Netlify Identity: ${identityUsers.length} users, ${identityInvites.length} pending invites.`}
+                    </p>
+                    {identityError && <p className="text-[11px] text-red-400 mt-1">{identityError}</p>}
                   </div>
                   <div className="flex items-center gap-3 bg-zinc-900 p-2 rounded-lg border border-zinc-800">
                     <span className="text-xs text-zinc-500 font-bold uppercase ml-2">Batch Rollout:</span>
@@ -460,7 +545,12 @@ export const AdminDashboard: React.FC<Props> = ({ currentAdmin, onLogout }) => {
                            </td>
                            <td className="p-4 text-right">
                              {w.status === 'PENDING' && (
-                               <Button size="sm" onClick={() => handleInviteWaitlist(w.id)}>Invite</Button>
+                               <Button size="sm" onClick={() => handleInviteWaitlist(w)} isLoading={isRollingOut}>Invite</Button>
+                             )}
+                             {inviteResultByEmail[w.email.toLowerCase()]?.status === 'FAILED' && (
+                               <div className="text-[10px] text-red-400 mt-2">
+                                 {inviteResultByEmail[w.email.toLowerCase()]?.error || 'Invite failed'}
+                               </div>
                              )}
                            </td>
                          </tr>

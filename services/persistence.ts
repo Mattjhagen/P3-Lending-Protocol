@@ -97,6 +97,52 @@ export const PersistenceService = {
     await supabase.from('waitlist').update({ status }).eq('id', id);
   },
 
+  upsertWaitlistInviteByEmail: async (
+    email: string,
+    name?: string,
+    status: 'INVITED' | 'ONBOARDED' = 'INVITED',
+  ) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) return null;
+
+    const fallbackName = name?.trim() || normalizedEmail.split('@')[0] || 'Invited User';
+
+    const { data: existing } = await supabase
+      .from('waitlist')
+      .select('*')
+      .ilike('email', normalizedEmail)
+      .maybeSingle();
+
+    if (existing) {
+      const current = existing.status as 'PENDING' | 'INVITED' | 'ONBOARDED';
+      const nextStatus = current === 'ONBOARDED' ? 'ONBOARDED' : status;
+
+      await supabase
+        .from('waitlist')
+        .update({
+          name: existing.name || fallbackName,
+          status: nextStatus,
+        })
+        .eq('id', existing.id);
+
+      return { ...existing, status: nextStatus };
+    }
+
+    const createdAt = new Date().toISOString();
+    const { data: inserted } = await supabase
+      .from('waitlist')
+      .insert({
+        name: fallbackName,
+        email: normalizedEmail,
+        status,
+        created_at: createdAt,
+      })
+      .select('*')
+      .single();
+
+    return inserted || null;
+  },
+
   inviteWaitlistBatch: async (count: number) => {
     // 1. Fetch the IDs of the oldest 'PENDING' users
     const { data: pendingUsers } = await supabase
@@ -155,13 +201,14 @@ export const PersistenceService = {
           data: newUser 
         });
 
-        // If they were on waitlist, update status to ONBOARDED
+        // Ensure invited users bypass queue and are marked ONBOARDED on first login.
         try {
-          const { data: waitlistData } = await supabase.from('waitlist').select('*').eq('email', netlifyUser.email).single();
-          if (waitlistData) {
-            await PersistenceService.updateWaitlistStatus(waitlistData.id, 'ONBOARDED');
-          }
-        } catch (ignore) {}
+          await PersistenceService.upsertWaitlistInviteByEmail(
+            netlifyUser.email,
+            newUser.name,
+            'ONBOARDED',
+          );
+        } catch (_ignore) {}
 
         return newUser;
       }

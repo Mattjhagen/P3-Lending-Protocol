@@ -23,10 +23,10 @@ export const AuthService = {
 
   // Event Listeners
   on: (event: 'login' | 'logout' | 'init' | 'error' | 'open' | 'close', callback: (user?: any) => void) => {
-    netlifyIdentity.on(event, callback);
+    (netlifyIdentity as any).on(event, callback);
   },
 
   off: (event: 'login' | 'logout' | 'init' | 'error' | 'open' | 'close', callback: (user?: any) => void) => {
-    netlifyIdentity.off(event, callback);
+    (netlifyIdentity as any).off(event, callback);
   }
 };

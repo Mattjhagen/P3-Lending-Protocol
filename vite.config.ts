@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
   // Debugging logs during build/start (visible in terminal)
   console.log(`\n--- P3 PROTOCOL CONFIGURATION ---`);
   if (apiKey) {
-    console.log(`✅ API Key Loaded: ${apiKey.substring(0, 4)}... (Length: ${apiKey.length})`);
+    console.log('✅ API Key Loaded (redacted)');
   } else {
     console.warn("⚠️  API Key MISSING (Gemini AI features will be disabled)");
   }
