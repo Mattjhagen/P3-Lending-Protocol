@@ -45,6 +45,8 @@ const VIEW_TITLES: Record<AppView, string> = {
   knowledge_base: 'Knowledge Base'
 };
 
+const DEFAULT_DONATION_URL = 'https://stripe.com/payments/checkout';
+
 const MOCK_CHARITIES: Charity[] = [
   { id: 'c1', name: 'Green Earth', mission: 'Reforestation', totalRaised: 1250, color: 'bg-green-500' },
   { id: 'c2', name: 'Code for Kids', mission: 'STEM Education', totalRaised: 890, color: 'bg-blue-500' },
@@ -106,6 +108,10 @@ const App: React.FC = () => {
   const [isCharityGuaranteed, setIsCharityGuaranteed] = useState(false);
   const [selectedCharity, setSelectedCharity] = useState<string>(MOCK_CHARITIES[0].id);
 
+  const donationCheckoutUrl =
+    ((import.meta as any).env?.VITE_STRIPE_DONATION_URL as string | undefined)?.trim() ||
+    DEFAULT_DONATION_URL;
+
   const activeChainLabel = getNetworkLabel(wallet.chainId);
   const activeExplorerBaseUrl = getExplorerBaseUrl(wallet.chainId);
   const activeEscrowAddress = getEscrowContractAddress(wallet.chainId);
@@ -154,6 +160,10 @@ const App: React.FC = () => {
       const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}${window.location.hash}`;
       window.history.replaceState({}, document.title, next);
     }
+  };
+
+  const openDonationCheckout = () => {
+    window.open(donationCheckoutUrl, '_blank', 'noopener,noreferrer');
   };
 
   // Helper to refresh global data
@@ -687,6 +697,7 @@ const App: React.FC = () => {
                 </div>
                 <p className="text-xs text-zinc-600 mt-2">Employee Login enabled via @p3lending.space email</p>
                 <button onClick={() => setShowPitchDeck(true)} className="text-xs text-zinc-600 hover:text-white mt-4 underline">View Investor Deck</button>
+                <button onClick={openDonationCheckout} className="text-xs text-[#00e599] hover:text-[#77ffd1] mt-2 underline">Donate / Invest via Stripe</button>
              </div>
            </>
          </div>
@@ -749,6 +760,15 @@ const App: React.FC = () => {
           <header className="h-16 border-b border-zinc-800/50 backdrop-blur-sm flex items-center justify-between px-8 z-10 bg-[#050505]/80">
              <div className="flex items-center gap-4"><h1 className="text-xl font-bold text-white tracking-tight">{VIEW_TITLES[activeView]}</h1></div>
              <div className="flex items-center gap-4">
+                <a
+                  href={donationCheckoutUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#00e599]/50 text-[#00e599] hover:bg-[#00e599]/10 transition-all"
+                  title="Support P3 via Stripe Checkout"
+                >
+                  Donate / Invest
+                </a>
                 <a href="https://www.facebook.com/profile.php?id=61573009392683" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full flex items-center justify-center border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-white hover:border-zinc-500 transition-all" title="Visit our Facebook Page">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                 </a>

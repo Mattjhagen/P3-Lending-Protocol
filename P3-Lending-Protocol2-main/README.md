@@ -17,6 +17,7 @@ The application features a high-contrast "Neon Green & Dark Zinc" aesthetic (ins
     ```env
     API_KEY=your_google_genai_api_key_here
     GOOGLE_CLIENT_ID=your_google_cloud_client_id
+    VITE_STRIPE_DONATION_URL=https://buy.stripe.com/your-checkout-link
     ```
 
 3.  **Run Application**
@@ -58,6 +59,7 @@ Notes:
 - Frontend env validation now requires `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
 - Backend env validation now requires `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
 - Stripe features use optional backend env vars `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and `STRIPE_DEFAULT_CURRENCY`.
+- Donation/Investor CTA can use `VITE_STRIPE_DONATION_URL` for a hosted Stripe Checkout link.
 - Netlify Identity admin controls (Admin Dashboard waitlist rollout) require Netlify site env vars:
   - `NETLIFY_IDENTITY_ADMIN_TOKEN`
   - `NETLIFY_ADMIN_ALLOWED_EMAIL_DOMAINS` (example: `p3lending.space`)
