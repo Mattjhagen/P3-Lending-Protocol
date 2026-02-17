@@ -40,6 +40,18 @@ The application features a high-contrast "Neon Green & Dark Zinc" aesthetic (ins
     npm start
     ```
 
+5.  **MCP + Log Automation Health Check**
+    ```bash
+    npm run mcp:health
+    ```
+
+6.  **Log Triage (Sentry, Read-Only)**
+    ```bash
+    npm run logs:triage -- --org <sentry-org> --project <sentry-project>
+    ```
+
+See `docs/mcp-automation-runbook.md` for guarded auto-fix workflow and branch/permission controls.
+
 ---
 
 ## 🔐 Google OAuth Setup (Required for Login)

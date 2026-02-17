@@ -11,7 +11,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "vite",
-    "env:check": "node scripts/check-env.mjs"
+    "env:check": "node scripts/check-env.mjs",
+    "mcp:health": "bash scripts/mcp/health-check.sh",
+    "logs:triage": "bash scripts/mcp/log-triage.sh",
+    "logs:triage:apply": "ALLOW_AUTOFIX=1 bash scripts/mcp/log-triage.sh --apply"
   },
   "dependencies": {
     "@coinbase/wallet-sdk": "^3.7.2",
