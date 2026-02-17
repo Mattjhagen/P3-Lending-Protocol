@@ -16,10 +16,26 @@ The application features a high-contrast "Neon Green & Dark Zinc" aesthetic (ins
     Create a `.env` file in the root directory (see `.env.example`):
     ```env
     API_KEY=your_google_genai_api_key_here
+    VITE_API_KEY=your_google_genai_api_key_here
     GOOGLE_CLIENT_ID=your_google_cloud_client_id
+    VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+    VITE_SUPABASE_ANON_KEY=<supabase_anon_key>
     ```
 
-3.  **Run Application**
+    Netlify admin invite flow also requires runtime env vars in Netlify:
+    ```env
+    NETLIFY_IDENTITY_ADMIN_TOKEN=<identity_admin_token>
+    NETLIFY_ADMIN_ALLOWED_EMAIL_DOMAINS=p3lending.space
+    NETLIFY_ADMIN_ALLOWED_EMAILS=
+    NETLIFY_IDENTITY_URL=
+    ```
+
+3.  **Validate Environment**
+    ```bash
+    npm run env:check
+    ```
+
+4.  **Run Application**
     ```bash
     npm start
     ```

@@ -200,18 +200,21 @@ export const handler = async (event) => {
   }
 
   const adminToken = (process.env.NETLIFY_IDENTITY_ADMIN_TOKEN || '').trim();
+  const identityBaseUrl = getIdentityBaseUrl(event);
+
+  const missingConfig = [];
   if (!adminToken) {
-    return response(500, {
-      ok: false,
-      error: 'Missing NETLIFY_IDENTITY_ADMIN_TOKEN configuration.',
-    });
+    missingConfig.push('NETLIFY_IDENTITY_ADMIN_TOKEN');
+  }
+  if (!identityBaseUrl) {
+    missingConfig.push('NETLIFY_IDENTITY_URL or valid host headers');
   }
 
-  const identityBaseUrl = getIdentityBaseUrl(event);
-  if (!identityBaseUrl) {
+  if (missingConfig.length > 0) {
     return response(500, {
       ok: false,
-      error: 'Unable to resolve Netlify Identity URL.',
+      error: 'Missing Netlify Identity admin configuration.',
+      missing: missingConfig,
     });
   }
 

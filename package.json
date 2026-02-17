@@ -10,7 +10,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "vite"
+    "start": "vite",
+    "env:check": "node scripts/check-env.mjs"
   },
   "dependencies": {
     "@coinbase/wallet-sdk": "^3.7.2",

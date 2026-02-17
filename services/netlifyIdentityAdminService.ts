@@ -49,6 +49,9 @@ const parseErrorMessage = (payload: unknown): string => {
 
   const body = payload as Record<string, unknown>;
   if (typeof body.error === 'string') {
+    if (Array.isArray(body.missing) && body.missing.length > 0) {
+      return `${body.error} Missing: ${body.missing.join(', ')}`;
+    }
     return body.error;
   }
   if (typeof body.message === 'string') {
