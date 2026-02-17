@@ -47,6 +47,7 @@ done
 
 echo
 echo "== Codex MCP Configuration =="
+codex_json=""
 if ! command -v codex >/dev/null 2>&1; then
   echo "codex CLI not found in PATH; cannot validate MCP registry."
 else
@@ -72,13 +73,66 @@ PY
   fi
 fi
 
+get_auth_info() {
+  local server_name="$1"
+  if [[ -z "$codex_json" ]]; then
+    echo "unknown|"
+    return 0
+  fi
+  python3 - <<'PY' "$codex_json" "$server_name"
+import json
+import sys
+
+data = json.loads(sys.argv[1])
+name = sys.argv[2]
+for item in data:
+    if item.get("name") == name:
+        auth = item.get("auth_status") or "unknown"
+        token_env = item.get("transport", {}).get("bearer_token_env_var") or ""
+        print(f"{auth}|{token_env}")
+        break
+else:
+    print("unknown|")
+PY
+}
+
 echo
 echo "== HTTP MCP Probes =="
 print_row "Server" "Status" "Notes"
 print_row "------" "------" "-----"
-probe_http_mcp "github" "https://api.githubcopilot.com/mcp/" "GITHUB_MCP_BEARER_TOKEN"
-probe_http_mcp "render" "https://mcp.render.com/mcp" "RENDER_MCP_BEARER_TOKEN"
-probe_http_mcp "supabase" "https://mcp.supabase.com/mcp" "SUPABASE_ACCESS_TOKEN"
+
+github_info="$(get_auth_info github)"
+github_auth="${github_info%%|*}"
+github_env="${github_info#*|}"
+if [[ "$github_auth" == "o_auth" ]]; then
+  print_row "github" "OK" "OAuth configured via codex mcp login"
+else
+  probe_http_mcp "github" "https://api.githubcopilot.com/mcp/" "${github_env:-GITHUB_MCP_BEARER_TOKEN}"
+fi
+
+render_info="$(get_auth_info render)"
+render_auth="${render_info%%|*}"
+render_env="${render_info#*|}"
+if [[ "$render_auth" == "o_auth" ]]; then
+  print_row "render" "OK" "OAuth configured via codex mcp login"
+else
+  probe_http_mcp "render" "https://mcp.render.com/mcp" "${render_env:-RENDER_MCP_BEARER_TOKEN}"
+fi
+
+supabase_info="$(get_auth_info supabase)"
+supabase_auth="${supabase_info%%|*}"
+supabase_env="${supabase_info#*|}"
+if [[ "$supabase_auth" == "o_auth" ]]; then
+  print_row "supabase" "OK" "OAuth configured via codex mcp login"
+else
+  probe_http_mcp "supabase" "https://mcp.supabase.com/mcp" "${supabase_env:-SUPABASE_ACCESS_TOKEN}"
+fi
+
+if npx -y netlify api listSites --data '{"page":1,"per_page":1}' >/dev/null 2>&1; then
+  print_row "netlify" "OK" "Netlify CLI/API auth valid"
+else
+  print_row "netlify" "FAIL" "Netlify CLI/API auth unavailable"
+fi
 
 echo
 echo "Done."
