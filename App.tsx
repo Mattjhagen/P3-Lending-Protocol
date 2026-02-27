@@ -1412,7 +1412,7 @@ const App: React.FC = () => {
                     href="https://developers.p3lending.space"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-white transition-colors"
+                    className="inline-flex items-center gap-1 rounded-full border border-[#00e599]/30 bg-[#00e599]/10 px-2.5 py-1 text-[#8cf7d2] hover:bg-[#00e599]/20 hover:text-[#d9fff0] transition-colors"
                   >
                     Developers
                   </a>
@@ -1420,7 +1420,7 @@ const App: React.FC = () => {
                     href="https://blog.p3lending.space"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-white transition-colors"
+                    className="inline-flex items-center gap-1 rounded-full border border-[#00e599]/30 bg-[#00e599]/10 px-2.5 py-1 text-[#8cf7d2] hover:bg-[#00e599]/20 hover:text-[#d9fff0] transition-colors"
                   >
                     Blog
                   </a>
@@ -1428,7 +1428,7 @@ const App: React.FC = () => {
                     href="https://learn.p3lending.space"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-white transition-colors"
+                    className="inline-flex items-center gap-1 rounded-full border border-[#00e599]/30 bg-[#00e599]/10 px-2.5 py-1 text-[#8cf7d2] hover:bg-[#00e599]/20 hover:text-[#d9fff0] transition-colors"
                   >
                     Learning Center
                   </a>

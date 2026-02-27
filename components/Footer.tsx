@@ -84,7 +84,7 @@ export const Footer: React.FC<Props> = ({ onOpenLegal }) => {
                     href="https://developers.p3lending.space"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-[#00e599] transition-colors"
+                    className="inline-flex items-center gap-1 rounded-full border border-[#00e599]/30 bg-[#00e599]/10 px-2 py-1 text-[#8cf7d2] hover:bg-[#00e599]/20 hover:text-[#dcfff2] transition-colors"
                   >
                     Developers
                   </a>
@@ -94,7 +94,7 @@ export const Footer: React.FC<Props> = ({ onOpenLegal }) => {
                     href="https://blog.p3lending.space"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-[#00e599] transition-colors"
+                    className="inline-flex items-center gap-1 rounded-full border border-[#00e599]/30 bg-[#00e599]/10 px-2 py-1 text-[#8cf7d2] hover:bg-[#00e599]/20 hover:text-[#dcfff2] transition-colors"
                   >
                     Blog
                   </a>
@@ -104,7 +104,7 @@ export const Footer: React.FC<Props> = ({ onOpenLegal }) => {
                     href="https://learn.p3lending.space"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-[#00e599] transition-colors"
+                    className="inline-flex items-center gap-1 rounded-full border border-[#00e599]/30 bg-[#00e599]/10 px-2 py-1 text-[#8cf7d2] hover:bg-[#00e599]/20 hover:text-[#dcfff2] transition-colors"
                   >
                     Learning Center
                   </a>
@@ -136,7 +136,7 @@ export const Footer: React.FC<Props> = ({ onOpenLegal }) => {
                 href={OFFICIAL_CLEARNET_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[11px] text-zinc-400 hover:text-[#00e599] break-all"
+                className="inline-flex items-center gap-1 rounded-full border border-[#00e599]/30 bg-[#00e599]/10 px-2 py-1 text-[11px] text-[#8cf7d2] hover:bg-[#00e599]/20 hover:text-[#dcfff2] break-all transition-colors"
               >
                 Official clearnet: {OFFICIAL_CLEARNET_URL}
               </a>
@@ -146,7 +146,7 @@ export const Footer: React.FC<Props> = ({ onOpenLegal }) => {
                 href={OFFICIAL_ONION_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[11px] text-zinc-400 hover:text-[#00e599] break-all font-mono"
+                className="inline-flex items-center gap-1 rounded-full border border-[#00e599]/30 bg-[#00e599]/10 px-2 py-1 text-[11px] text-[#8cf7d2] hover:bg-[#00e599]/20 hover:text-[#dcfff2] break-all font-mono transition-colors"
               >
                 Official onion: {OFFICIAL_ONION_URL}
               </a>

@@ -199,6 +199,29 @@
       border: 1px solid rgba(148,163,184,0.35);
       color: var(--muted);
     }
+    .network-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.22rem 0.58rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 229, 153, 0.35);
+      background: rgba(0, 229, 153, 0.1);
+      color: #91f8d4;
+      text-decoration: none;
+      font-size: 0.84rem;
+    }
+    .network-link::after {
+      content: '↗';
+      opacity: 0.8;
+      font-size: 0.8em;
+    }
+    .network-link:hover {
+      border-color: rgba(0, 229, 153, 0.7);
+      background: rgba(0, 229, 153, 0.2);
+      color: #dcfff2;
+      text-decoration: none;
+    }
     .section-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -308,9 +331,9 @@
           <h3>Need the technical details?</h3>
           <p>Developers and partners should start at the Developer Center:</p>
           <ul>
-            <li><a href="https://developers.p3lending.space">P3 Developer Center</a></li>
-            <li><a href="https://api.p3lending.space/docs/openapi.json">OpenAPI JSON (API)</a></li>
-            <li><a href="https://p3lending.space">Main application</a></li>
+            <li><a class="network-link" href="https://developers.p3lending.space">P3 Developer Center</a></li>
+            <li><a class="network-link" href="https://api.p3lending.space/docs/openapi.json">OpenAPI JSON (API)</a></li>
+            <li><a class="network-link" href="https://p3lending.space">Main application</a></li>
           </ul>
         </article>
       </div>
@@ -362,9 +385,9 @@
     <div class="footer-inner">
       <div>© <span id="year"></span> P3 Lending. All rights reserved.</div>
       <div class="footer-links">
-        <a href="https://p3lending.space">Main portal</a>
-        <a href="https://developers.p3lending.space">Developers</a>
-        <a href="https://blog.p3lending.space">Blog</a>
+        <a class="network-link" href="https://p3lending.space">Main portal</a>
+        <a class="network-link" href="https://developers.p3lending.space">Developers</a>
+        <a class="network-link" href="https://blog.p3lending.space">Blog</a>
       </div>
     </div>
   </footer>
