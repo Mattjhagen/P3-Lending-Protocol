@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P3 Lending - Auth Testing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+        }
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .user-info {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+        .user-info h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .user-info p {
+            color: #666;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .user-info strong {
+            color: #333;
+        }
+        .links {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+        .links a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            margin: 0 10px;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 P3 Lending</h1>
+        <p class="subtitle">Local Development - Authentication Testing</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('register')">Register</button>
+            <button class="tab" onclick="switchTab('login')">Login</button>
+            <button class="tab" onclick="switchTab('status')">Status</button>
+        </div>
+
+        <!-- Register Form -->
+        <form id="registerForm" onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="reg_name" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="reg_email" placeholder="john@example.com" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="reg_password" placeholder="••••••••" required>
+            </div>
+            <button type="submit">Create Account</button>
+        </form>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="hidden" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="login_email" placeholder="john@example.com" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login_password" placeholder="••••••••" required>
+            </div>
+            <button type="submit">Sign In</button>
+        </form>
+
+        <!-- Status View -->
+        <div id="statusView" class="hidden">
+            <div class="user-info" id="userInfo">
+                <h3>✅ Authenticated</h3>
+                <p><strong>Email:</strong> <span id="user_email"></span></p>
+                <p><strong>User ID:</strong> <span id="user_id"></span></p>
+                <p><strong>Token:</strong> <code style="font-size: 11px; word-break: break-all;" id="user_token"></code></p>
+            </div>
+            <button onclick="handleLogout()" style="margin-top: 20px; background: #dc3545;">Sign Out</button>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div class="links">
+            <a href="http://localhost:8025" target="_blank">📧 View Emails (Mailhog)</a>
+            <a href="http://localhost:5001/health" target="_blank">🔧 API Health</a>
+            <a href="/">🏠 Main App</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001';
+
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Show/hide forms
+            document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+            document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+            document.getElementById('statusView').classList.toggle('hidden', tab !== 'status');
+
+            // Update status if viewing status tab
+            if (tab === 'status') {
+                updateStatus();
+            }
+
+            // Clear message
+            hideMessage();
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('reg_name').value;
+            const email = document.getElementById('reg_email').value;
+            const password = document.getElementById('reg_password').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, full_name: name })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Store token
+                    localStorage.setItem('auth_token', data.token);
+                    localStorage.setItem('auth_user', JSON.stringify(data.user));
+
+                    showMessage('success', `✅ ${data.message || 'Registration successful!'} Check Mailhog for confirmation email.`);
+
+                    // Switch to status tab after 2 seconds
+                    setTimeout(() => {
+                        document.querySelectorAll('.tab')[2].click();
+                    }, 2000);
+                } else {
+                    showMessage('error', `❌ ${data.error || 'Registration failed'}`);
+                }
+            } catch (error) {
+                showMessage('error', `❌ Network error: ${error.message}`);
+            }
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('login_email').value;
+            const password = document.getElementById('login_password').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Store token
+                    localStorage.setItem('auth_token', data.token);
+                    localStorage.setItem('auth_user', JSON.stringify(data.user));
+
+                    showMessage('success', `✅ ${data.message || 'Login successful!'}`);
+
+                    // Switch to status tab after 1 second
+                    setTimeout(() => {
+                        document.querySelectorAll('.tab')[2].click();
+                    }, 1000);
+                } else {
+                    showMessage('error', `❌ ${data.error || 'Login failed'}`);
+                }
+            } catch (error) {
+                showMessage('error', `❌ Network error: ${error.message}`);
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
+            showMessage('success', '✅ Signed out successfully');
+            setTimeout(() => {
+                document.querySelectorAll('.tab')[1].click();
+            }, 1000);
+        }
+
+        function updateStatus() {
+            const token = localStorage.getItem('auth_token');
+            const userStr = localStorage.getItem('auth_user');
+
+            if (token && userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    document.getElementById('userInfo').style.display = 'block';
+                    document.getElementById('user_email').textContent = user.email;
+                    document.getElementById('user_id').textContent = user.id;
+                    document.getElementById('user_token').textContent = token.substring(0, 50) + '...';
+                } catch (e) {
+                    document.getElementById('userInfo').style.display = 'none';
+                    showMessage('error', '❌ Not authenticated');
+                }
+            } else {
+                document.getElementById('userInfo').style.display = 'none';
+                showMessage('error', '❌ Not authenticated. Please register or login first.');
+            }
+        }
+
+        function showMessage(type, text) {
+            const msg = document.getElementById('message');
+            msg.className = `message ${type}`;
+            msg.textContent = text;
+            msg.style.display = 'block';
+        }
+
+        function hideMessage() {
+            document.getElementById('message').style.display = 'none';
+        }
+
+        // Check status on load
+        window.onload = () => {
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                // Auto-switch to status tab if already logged in
+                document.querySelectorAll('.tab')[2].click();
+            }
+        };
+    </script>
+</body>
+</html>

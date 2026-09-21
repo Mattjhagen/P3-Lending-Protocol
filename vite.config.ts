@@ -60,6 +60,15 @@ export default defineConfig(({ mode }) => {
       // Ensure global is available
       'global': 'window',
     },
+    server: {
+      host: true,
+      allowedHosts: [
+        'localhost',
+        '192.168.0.169',
+        'p3lending.space',
+        '.p3lending.space', // Allow all subdomains
+      ],
+    },
     build: {
       outDir: 'dist',
       commonjsOptions: {
