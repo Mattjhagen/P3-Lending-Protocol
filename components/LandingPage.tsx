@@ -3,12 +3,18 @@ import { Logo } from './Logo';
 import { Button } from './Button';
 import { Footer } from './Footer';
 import { LegalDocType } from './LegalModal';
-import { PersistenceService } from '../services/persistence';
 
 const WAITLIST_REF_STORAGE_KEY = 'p3_ref';
 
+interface Waitlist {
+  addToWaitlist(name: string, email: string, referralCode?: string | null): Promise<{ name: string; position: number; referralCode: string } | null>;
+  getWaitlistPosition(email: string): Promise<{ name: string; position: number; referralCode?: string } | null>;
+  getWaitlistCount(): Promise<number>;
+}
+
 interface Props {
-  onLaunch: () => void;
+  waitlist: Waitlist;
+  onLaunch?: () => void;
   onDevAdminLogin: () => void;
   onOpenDocs: () => void;
   onOpenLegal: (type: LegalDocType) => void;
@@ -51,7 +57,7 @@ const LiveToasts = () => {
         <div>
           <div className="text-[#00e599] font-bold text-xs uppercase tracking-wider mb-0.5 flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#00e599] animate-pulse"></span>
-            Live Protocol
+            Illustrative Activity
           </div>
           <div className="text-white font-bold text-sm">{current.title}</div>
           <div className="text-zinc-500 text-xs">{current.sub}</div>
@@ -62,7 +68,7 @@ const LiveToasts = () => {
 };
 
 // --- Waitlist Modal Component ---
-const WaitlistModal = ({ isOpen, onClose, onLaunchApp }: { isOpen: boolean; onClose: () => void; onLaunchApp: () => void }) => {
+const WaitlistModal = ({ isOpen, onClose, onLaunchApp, waitlist }: { isOpen: boolean; onClose: () => void; onLaunchApp?: () => void; waitlist: Waitlist }) => {
   // Modes: JOIN (Sign up), CHECK (Check existing), RESULT (Show status)
   const [mode, setMode] = useState<'JOIN' | 'CHECK' | 'RESULT'>('JOIN');
   
@@ -95,7 +101,7 @@ const WaitlistModal = ({ isOpen, onClose, onLaunchApp }: { isOpen: boolean; onCl
     setIsSubmitting(true);
     
     try {
-      const signup = await PersistenceService.addToWaitlist(
+      const signup = await waitlist.addToWaitlist(
         name,
         email,
         getActiveReferralCode()
@@ -124,7 +130,7 @@ const WaitlistModal = ({ isOpen, onClose, onLaunchApp }: { isOpen: boolean; onCl
     setErrorMsg('');
 
     try {
-      const result = await PersistenceService.getWaitlistPosition(email);
+      const result = await waitlist.getWaitlistPosition(email);
       
       if (result) {
         setPosition(result.position);
@@ -325,14 +331,14 @@ const WaitlistModal = ({ isOpen, onClose, onLaunchApp }: { isOpen: boolean; onCl
                 </button>
              </div>
 
-             <div className="border-t border-zinc-900 pt-4">
+             {onLaunchApp && <div className="border-t border-zinc-900 pt-4">
                <p className="text-zinc-500 text-[10px] mb-3">
                  Want to look around first?
                </p>
                <Button onClick={onLaunchApp} variant="outline" className="w-full py-2 text-sm border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600">
                  View Live Demo Environment
                </Button>
-             </div>
+             </div>}
           </div>
         )}
       </div>
@@ -340,7 +346,7 @@ const WaitlistModal = ({ isOpen, onClose, onLaunchApp }: { isOpen: boolean; onCl
   );
 };
 
-export const LandingPage: React.FC<Props> = ({ onLaunch, onDevAdminLogin, onOpenDocs, onOpenLegal }) => {
+export const LandingPage: React.FC<Props> = ({ onLaunch, onOpenLegal, waitlist }) => {
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [totalWaitlist, setTotalWaitlist] = useState(0);
 
@@ -351,10 +357,10 @@ export const LandingPage: React.FC<Props> = ({ onLaunch, onDevAdminLogin, onOpen
     }
 
     // Fetch live waitlist count for the ticker
-    PersistenceService.getWaitlistCount().then(count => {
+    waitlist.getWaitlistCount().then(count => {
       setTotalWaitlist(count);
-    });
-  }, []);
+    }).catch(() => {});
+  }, [waitlist]);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -366,7 +372,7 @@ export const LandingPage: React.FC<Props> = ({ onLaunch, onDevAdminLogin, onOpen
   return (
     <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden relative font-sans selection:bg-[#00e599] selection:text-black flex flex-col">
       <LiveToasts />
-      <WaitlistModal isOpen={showWaitlist} onClose={() => setShowWaitlist(false)} onLaunchApp={onLaunch} />
+      <WaitlistModal isOpen={showWaitlist} onClose={() => setShowWaitlist(false)} onLaunchApp={onLaunch} waitlist={waitlist} />
 
       {/* Background Effects */}
       <div className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-20 pointer-events-none fixed"></div>
@@ -409,9 +415,9 @@ export const LandingPage: React.FC<Props> = ({ onLaunch, onDevAdminLogin, onOpen
           <button onClick={() => setShowWaitlist(true)} className="bg-[#00e599] text-black px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-[#00cc88] transition-colors shadow-[0_0_15px_rgba(0,229,153,0.3)]">
             Join Waitlist
           </button>
-          <button onClick={onLaunch} className="text-xs sm:text-sm font-medium text-zinc-500 hover:text-white transition-colors">
+          {onLaunch && <button onClick={onLaunch} className="text-xs sm:text-sm font-medium text-zinc-500 hover:text-white transition-colors">
             Member Login
-          </button>
+          </button>}
         </div>
       </nav>
 
@@ -448,7 +454,7 @@ export const LandingPage: React.FC<Props> = ({ onLaunch, onDevAdminLogin, onOpen
           </div>
 
           <p className="text-xs text-zinc-600 font-mono">
-            Limited spots available for Q1 2025.
+            Join the early access waitlist.
           </p>
 
           {/* Scroll Indicator */}
@@ -464,19 +470,19 @@ export const LandingPage: React.FC<Props> = ({ onLaunch, onDevAdminLogin, onOpen
       {/* Stats Ticker */}
       <div className="border-y border-zinc-900 bg-black/50 backdrop-blur-sm overflow-hidden py-4">
         <div className="flex gap-16 justify-center items-center text-zinc-500 font-mono text-xs uppercase tracking-widest animate-ticker whitespace-nowrap">
-           <span>Total Liquidity: $2.4M</span>
+           <span>Illustrative Liquidity: $2.4M</span>
            <span>•</span>
-           <span>Repayment Rate: 98.2%</span>
+           <span>Example Repayment Rate: 98.2%</span>
            <span>•</span>
-           <span>Verified Users: 15,204</span>
+           <span>Example Verified Users: 15,204</span>
            <span>•</span>
-           <span>Avg Approval: 4.8s</span>
+           <span>Example Approval: 4.8s</span>
            <span>•</span>
            <span className="text-[#00e599] font-bold">Waitlist: {totalWaitlist.toLocaleString()}</span>
            <span>•</span>
-           <span>Total Liquidity: $2.4M</span>
+           <span>Illustrative Liquidity: $2.4M</span>
            <span>•</span>
-           <span>Repayment Rate: 98.2%</span>
+           <span>Example Repayment Rate: 98.2%</span>
         </div>
       </div>
 
