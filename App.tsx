@@ -1174,7 +1174,7 @@ const App: React.FC = () => {
     return (
       <>
         <LegalModal type={activeLegalDoc} onClose={() => setActiveLegalDoc(null)} />
-        <LandingPage 
+        <LandingPage waitlist={PersistenceService}
           onLaunch={() => setShowLanding(false)} 
           onDevAdminLogin={() => {}} 
           onOpenDocs={() => setActiveView('knowledge_base')} 
